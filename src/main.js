@@ -7,7 +7,7 @@ const searchForm = document.querySelector('.form');
 const searchQuery = searchForm.elements['search-text'];
 export const loadMoreBtn = document.querySelector('.load-more');
 
-const page = 1; // default 1
+let page = 1;
 const perPage = 15;
 
 let totalHits;
@@ -15,8 +15,9 @@ export function searchFocus() {
   searchQuery.focus();
 }
 
-function queryHandler(query) {
+const queryCheck = query => {
   searchQuery.value = query;
+  page = 1;
   render.clearGallery();
 
   if (!query) {
@@ -28,7 +29,10 @@ function queryHandler(query) {
     });
     return;
   }
+  queryProcess(query);
+};
 
+const queryProcess = query => {
   render.hideLoadMoreButton();
   render.showLoader();
   getImagesByQuery(query, page)
@@ -56,38 +60,33 @@ function queryHandler(query) {
       });
     })
     .finally(render.hideLoader);
-}
+};
 
-function formHandler() {
+const formHandler = () => {
   searchForm.addEventListener('submit', event => {
     if (event.target === searchForm) {
       event.preventDefault();
-      // console.log(`submit`, event);
-      queryHandler(searchQuery.value.trim());
+      queryCheck(searchQuery.value.trim());
     }
   });
-}
+};
 
 const urlHandler = {
   init: function () {
     this.url = new URL(window.location.href);
     this.params = new URLSearchParams(this.url.search);
   },
-
   update: function () {
     this.url.search = this.params.toString();
     window.history.pushState({}, '', `${this.url}`);
   },
-
   get: function () {
     return this.params.get('q');
   },
-
   set: function (query) {
     this.params.set('q', query);
     this.update();
   },
-
   remove: function () {
     this.params.delete('q');
     this.update();
@@ -98,15 +97,15 @@ const galleryPagination = {
   init: () => {
     loadMoreBtn.addEventListener('click', event => {
       if (event.target === loadMoreBtn) {
-        // console.log(`load more click`, event);
-        // loadMoreBtn.removeEventListener('click', event);
+        page++;
+        queryProcess(searchQuery.value);
       }
     });
   },
 
   handle: () => {
-    // console.log(`total`, totalHits);
-    if (totalHits > perPage) {
+    console.log(`total`, totalHits);
+    if (totalHits > perPage * page) {
       render.showLoadMoreButton();
     }
   },
@@ -117,7 +116,7 @@ window.addEventListener('load', searchFocus);
   document.body.addEventListener(event, searchFocus)
 );
 
-galleryPagination.init();
 urlHandler.init();
-urlHandler.get() && queryHandler(urlHandler.get());
+galleryPagination.init();
+urlHandler.get() && queryCheck(urlHandler.get());
 formHandler();

@@ -11,7 +11,8 @@ export function createGallery(images) {
     captionDelay: 250,
   });
 
-  gallery.innerHTML = createMarkup(images);
+  //gallery.innerHTML = createMarkup(images);
+  gallery.insertAdjacentHTML('beforeend', createMarkup(images));
   lightbox.refresh();
   lightbox.on('closed.simplelightbox', () => {
     searchFocus();
