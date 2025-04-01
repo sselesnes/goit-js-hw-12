@@ -40,6 +40,7 @@ const queryProcess = query => {
   getImagesByQuery(query, page)
     .then(fetchResultJSON => {
       totalHits = fetchResultJSON.totalHits;
+      console.log(totalHits);
       galleryPagination.handle();
       if (totalHits) {
         urlHandler.set(query);
@@ -116,6 +117,13 @@ const galleryPagination = {
   handle: () => {
     if (totalHits > perPage * page) {
       render.showLoadMoreButton();
+    } else {
+      render.hideLoadMoreButton();
+      iziToast.info({
+        message: `We're sorry, but you've reached the end of search results.`,
+        position: 'topRight',
+        timeout: 2000,
+      });
     }
   },
 };
