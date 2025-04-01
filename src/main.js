@@ -15,6 +15,17 @@ export function searchFocus() {
   searchQuery.focus();
 }
 
+const scrollToNextGroup = () => {
+  const galleryCard = document.querySelector('.gallery-item');
+  const cardHeight = galleryCard.getBoundingClientRect().height;
+  const currentScrollY = window.scrollY;
+  console.log(currentScrollY, currentScrollY + 2 * cardHeight);
+  // window.scrollTo({
+  //   top: currentScrollY + 2 * cardHeight,
+  //   behavior: 'smooth',
+  // });
+};
+
 const queryCheck = query => {
   searchQuery.value = query;
   page = 1;
@@ -42,6 +53,10 @@ const queryProcess = query => {
       if (totalHits) {
         urlHandler.set(query);
         render.createGallery(fetchResultJSON.hits);
+        if (page > 1) {
+          // setTimeout(scrollToNextGroup, 100);
+          scrollToNextGroup();
+        }
       } else {
         urlHandler.remove();
         iziToast.error({
@@ -104,7 +119,6 @@ const galleryPagination = {
   },
 
   handle: () => {
-    console.log(`total`, totalHits);
     if (totalHits > perPage * page) {
       render.showLoadMoreButton();
     }
