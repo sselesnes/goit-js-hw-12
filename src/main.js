@@ -3,34 +3,25 @@ import 'izitoast/dist/css/iziToast.min.css';
 import getImagesByQuery from './js/pixabay-api';
 import * as render from './js/render-functions';
 
+let totalHits;
+let page = 1;
 const searchForm = document.querySelector('.form');
-const searchQuery = searchForm.elements['search-text'];
+export const perPage = 15;
+export const searchQuery = searchForm.elements['search-text'];
 export const loadMoreBtn = document.querySelector('.load-more');
 
-let page = 1;
-const perPage = 15;
-
-let totalHits;
-export function searchFocus() {
-  searchQuery.focus();
-}
-
-const scrollToNextGroup = () => {
+const scrollTwoRows = () => {
   const galleryCard = document.querySelector('.gallery-item');
   const cardHeight = galleryCard.getBoundingClientRect().height;
-  const currentScrollY = window.scrollY;
-  console.log(currentScrollY, currentScrollY + 2 * cardHeight);
-  // window.scrollTo({
-  //   top: currentScrollY + 2 * cardHeight,
-  //   behavior: 'smooth',
-  // });
+  window.scrollTo({
+    top: window.scrollY + 2 * cardHeight,
+    behavior: 'smooth',
+  });
 };
 
 const queryCheck = query => {
   searchQuery.value = query;
-  page = 1;
   render.clearGallery();
-
   if (!query) {
     urlHandler.remove();
     iziToast.warning({
@@ -54,8 +45,7 @@ const queryProcess = query => {
         urlHandler.set(query);
         render.createGallery(fetchResultJSON.hits);
         if (page > 1) {
-          // setTimeout(scrollToNextGroup, 100);
-          scrollToNextGroup();
+          scrollTwoRows();
         }
       } else {
         urlHandler.remove();
@@ -81,6 +71,8 @@ const formHandler = () => {
   searchForm.addEventListener('submit', event => {
     if (event.target === searchForm) {
       event.preventDefault();
+      urlHandler.remove();
+      page = 1;
       queryCheck(searchQuery.value.trim());
     }
   });
@@ -96,14 +88,17 @@ const urlHandler = {
     window.history.pushState({}, '', `${this.url}`);
   },
   get: function () {
+    page = this.params.get('p') ?? page;
     return this.params.get('q');
   },
   set: function (query) {
     this.params.set('q', query);
+    page !== 1 && this.params.set('p', page);
     this.update();
   },
   remove: function () {
     this.params.delete('q');
+    this.params.delete('p');
     this.update();
   },
 };
@@ -113,6 +108,7 @@ const galleryPagination = {
     loadMoreBtn.addEventListener('click', event => {
       if (event.target === loadMoreBtn) {
         page++;
+
         queryProcess(searchQuery.value);
       }
     });
@@ -125,9 +121,8 @@ const galleryPagination = {
   },
 };
 
-window.addEventListener('load', searchFocus);
-['click', 'keydown'].forEach(event =>
-  document.body.addEventListener(event, searchFocus)
+['load', 'keydown'].forEach(event =>
+  window.addEventListener(event, () => searchQuery.focus())
 );
 
 urlHandler.init();

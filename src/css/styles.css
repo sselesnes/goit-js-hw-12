@@ -135,7 +135,7 @@ input::placeholder {
   font-weight: 400;
 }
 .loader.is-active {
-  margin: 35vh auto;
+  margin: 24px auto;
   display: flex;
   width: 48px;
   height: 48px;
