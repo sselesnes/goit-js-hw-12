@@ -3,12 +3,12 @@ import 'izitoast/dist/css/iziToast.min.css';
 import getImagesByQuery from './js/pixabay-api';
 import * as render from './js/render-functions';
 
-let totalHits;
 let page = 1;
+let totalHits;
 const searchForm = document.querySelector('.form');
-export const perPage = 15;
-export const searchQuery = searchForm.elements['search-text'];
+const searchQuery = searchForm.elements['search-text'];
 export const loadMoreBtn = document.querySelector('.load-more');
+export const perPage = 15;
 
 const queryCheck = query => {
   searchQuery.value = query;

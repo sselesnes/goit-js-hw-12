@@ -1,6 +1,6 @@
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-import { searchQuery, loadMoreBtn } from '../main';
+import { loadMoreBtn } from '../main';
 
 const gallery = document.querySelector('.gallery');
 const cssLoader = document.querySelector('.loader');
@@ -10,12 +10,8 @@ export function createGallery(images) {
     captionsData: 'alt',
     captionDelay: 250,
   });
-
   gallery.insertAdjacentHTML('beforeend', createMarkup(images));
   lightbox.refresh();
-  lightbox.on('closed.simplelightbox', () => {
-    searchQuery.focus();
-  });
 }
 
 export function clearGallery() {
