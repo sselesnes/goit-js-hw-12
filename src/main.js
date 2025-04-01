@@ -1,5 +1,3 @@
-// У файлі main.js напиши всю логіку роботи додатка. Виклики нотифікацій iziToast, усі перевірки на довжину масиву в отриманій відповіді та логіку прокручування сторінки (scroll) робимо саме в цьому файлі. Імпортуй в нього функції із файлів pixabay-api.js та render-functions.js та викликай їх у відповідний момент.
-
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 import getImagesByQuery from './js/pixabay-api';
@@ -22,7 +20,7 @@ function queryHandler(query) {
   render.clearGallery();
 
   if (!query) {
-    urlHandler(null);
+    urlHandler.remove();
     iziToast.warning({
       message: 'Sorry, the request cannot be empty. Please try again!',
       position: 'topRight',
@@ -36,12 +34,12 @@ function queryHandler(query) {
   getImagesByQuery(query, page)
     .then(fetchResultJSON => {
       totalHits = fetchResultJSON.totalHits;
-      galleryPaginationHandler();
+      galleryPagination.handle();
       if (totalHits) {
-        urlHandler(query);
+        urlHandler.set(query);
         render.createGallery(fetchResultJSON.hits);
       } else {
-        urlHandler(null);
+        urlHandler.remove();
         iziToast.error({
           message:
             'Sorry, there are no images matching your search query. Please try again!',
@@ -62,35 +60,64 @@ function queryHandler(query) {
 
 function formHandler() {
   searchForm.addEventListener('submit', event => {
-    event.preventDefault();
-    queryHandler(searchQuery.value.trim());
+    if (event.target === searchForm) {
+      event.preventDefault();
+      // console.log(`submit`, event);
+      queryHandler(searchQuery.value.trim());
+    }
   });
 }
 
-function galleryPaginationHandler() {
-  console.log(`total`, totalHits);
-  if (totalHits > perPage) {
-    render.showLoadMoreButton();
-  }
-  loadMoreBtn.addEventListener('click', event => {
-    console.log(`load more click`);
-  });
-}
+const urlHandler = {
+  init: function () {
+    this.url = new URL(window.location.href);
+    this.params = new URLSearchParams(this.url.search);
+  },
 
-function urlHandler(query) {
-  const url = new URL(window.location.href);
-  const params = new URLSearchParams(url.search);
-  if (typeof query == 'undefined') return params.get('q');
-  query ? params.set('q', query) : params.delete('q');
-  url.search = params.toString();
-  window.history.pushState({}, '', url);
-  return;
-}
+  update: function () {
+    this.url.search = this.params.toString();
+    window.history.pushState({}, '', `${this.url}`);
+  },
+
+  get: function () {
+    return this.params.get('q');
+  },
+
+  set: function (query) {
+    this.params.set('q', query);
+    this.update();
+  },
+
+  remove: function () {
+    this.params.delete('q');
+    this.update();
+  },
+};
+
+const galleryPagination = {
+  init: () => {
+    loadMoreBtn.addEventListener('click', event => {
+      if (event.target === loadMoreBtn) {
+        // console.log(`load more click`, event);
+        // loadMoreBtn.removeEventListener('click', event);
+      }
+    });
+  },
+
+  handle: () => {
+    // console.log(`total`, totalHits);
+    if (totalHits > perPage) {
+      render.showLoadMoreButton();
+    }
+  },
+};
 
 window.addEventListener('load', searchFocus);
 ['click', 'keydown'].forEach(event =>
   document.body.addEventListener(event, searchFocus)
 );
 
-urlHandler() && queryHandler(urlHandler());
+galleryPagination.init();
+urlHandler.init();
+urlHandler.get() && queryHandler(urlHandler.get());
 formHandler();
