@@ -40,7 +40,6 @@ const queryProcess = query => {
   getImagesByQuery(query, page)
     .then(fetchResultJSON => {
       totalHits = fetchResultJSON.totalHits;
-      console.log(totalHits);
       galleryPagination.handle();
       if (totalHits) {
         urlHandler.set(query);
