@@ -10,15 +10,6 @@ export const perPage = 15;
 export const searchQuery = searchForm.elements['search-text'];
 export const loadMoreBtn = document.querySelector('.load-more');
 
-const scrollTwoRows = () => {
-  const galleryCard = document.querySelector('.gallery-item');
-  const cardHeight = galleryCard.getBoundingClientRect().height;
-  window.scrollTo({
-    top: window.scrollY + 2 * cardHeight,
-    behavior: 'smooth',
-  });
-};
-
 const queryCheck = query => {
   searchQuery.value = query;
   render.clearGallery();
@@ -32,6 +23,15 @@ const queryCheck = query => {
     return;
   }
   queryProcess(query);
+};
+
+const scrollTwoRows = () => {
+  const galleryCard = document.querySelector('.gallery-item');
+  const cardHeight = galleryCard.getBoundingClientRect().height;
+  window.scrollTo({
+    top: window.scrollY + 2 * cardHeight,
+    behavior: 'smooth',
+  });
 };
 
 const queryProcess = query => {
@@ -108,7 +108,6 @@ const galleryPagination = {
     loadMoreBtn.addEventListener('click', event => {
       if (event.target === loadMoreBtn) {
         page++;
-
         queryProcess(searchQuery.value);
       }
     });
