@@ -1,19 +1,22 @@
+// У файлі main.js напиши всю логіку роботи додатка. Виклики нотифікацій iziToast, усі перевірки на довжину масиву в отриманій відповіді та логіку прокручування сторінки (scroll) робимо саме в цьому файлі. Імпортуй в нього функції із файлів pixabay-api.js та render-functions.js та викликай їх у відповідний момент.
+
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
-import fetchImages from './js/pixabay-api';
-import renderGallery, { clearGallery } from './js/render-functions';
+import getImagesByQuery from './js/pixabay-api';
+import * as render from './js/render-functions';
 
 const searchForm = document.querySelector('.form');
 const searchQuery = searchForm.elements['search-text'];
-const cssLoader = document.querySelector('.loader');
 
-export function searchFocus() {
+const page = 1;
+
+export default function searchFocus() {
   searchQuery.focus();
 }
 
 function requestHandler(request) {
   searchQuery.value = request;
-  clearGallery();
+  render.clearGallery();
 
   if (!request) {
     urlHandler(null);
@@ -25,12 +28,12 @@ function requestHandler(request) {
     return;
   }
 
-  cssLoader.classList.add('is-active');
-  fetchImages(request)
+  render.showLoader();
+  getImagesByQuery(request, page)
     .then(fetchResultJSON => {
       if (fetchResultJSON.totalHits) {
         urlHandler(request);
-        renderGallery(fetchResultJSON.hits);
+        render.createGallery(fetchResultJSON.hits);
       } else {
         urlHandler(null);
         iziToast.error({
@@ -48,9 +51,7 @@ function requestHandler(request) {
         timeout: 2000,
       });
     })
-    .finally(() => {
-      cssLoader.classList.remove('is-active');
-    });
+    .finally(render.hideLoader);
 }
 
 function formHandler() {
@@ -70,9 +71,10 @@ function urlHandler(query) {
   return;
 }
 
-window.addEventListener('load', () => searchFocus());
-document.body.addEventListener('click', () => searchFocus());
-document.body.addEventListener('keydown', () => searchFocus());
+window.addEventListener('load', searchFocus);
+['click', 'keydown'].forEach(event =>
+  document.body.addEventListener(event, searchFocus)
+);
 
 urlHandler() && requestHandler(urlHandler());
 formHandler();

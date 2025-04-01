@@ -1,15 +1,17 @@
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-import { searchFocus } from '../main';
+import searchFocus from '../main';
 
 const gallery = document.querySelector('.gallery');
-const lightbox = new SimpleLightbox('.gallery a', {
-  captionsData: 'alt',
-  captionDelay: 250,
-});
+const cssLoader = document.querySelector('.loader');
 
-export default function renderGallery(images) {
-  gallery.innerHTML = createGalleryMarkup(images);
+export function createGallery(images) {
+  const lightbox = new SimpleLightbox('.gallery a', {
+    captionsData: 'alt',
+    captionDelay: 250,
+  });
+
+  gallery.innerHTML = createMarkup(images);
   lightbox.refresh();
   lightbox.on('closed.simplelightbox', () => {
     searchFocus();
@@ -20,7 +22,18 @@ export function clearGallery() {
   gallery.innerHTML = '';
 }
 
-function createGalleryMarkup(images) {
+export function showLoader() {
+  cssLoader.classList.add('is-active');
+}
+
+export function hideLoader() {
+  cssLoader.classList.remove('is-active');
+}
+
+export function showLoadMoreButton() {}
+export function hideLoadMoreButton() {}
+
+function createMarkup(images) {
   return images
     .map(
       ({
