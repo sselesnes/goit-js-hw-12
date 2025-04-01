@@ -1,6 +1,6 @@
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-import searchFocus from '../main';
+import { searchFocus, loadMoreBtn } from '../main';
 
 const gallery = document.querySelector('.gallery');
 const cssLoader = document.querySelector('.loader');
@@ -30,8 +30,12 @@ export function hideLoader() {
   cssLoader.classList.remove('is-active');
 }
 
-export function showLoadMoreButton() {}
-export function hideLoadMoreButton() {}
+export function showLoadMoreButton() {
+  loadMoreBtn.classList.add('is-active');
+}
+export function hideLoadMoreButton() {
+  loadMoreBtn.classList.remove('is-active');
+}
 
 function createMarkup(images) {
   return images

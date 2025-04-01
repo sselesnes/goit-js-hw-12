@@ -7,18 +7,21 @@ import * as render from './js/render-functions';
 
 const searchForm = document.querySelector('.form');
 const searchQuery = searchForm.elements['search-text'];
+export const loadMoreBtn = document.querySelector('.load-more');
 
-const page = 1;
+const page = 1; // default 1
+const perPage = 15;
 
-export default function searchFocus() {
+let totalHits;
+export function searchFocus() {
   searchQuery.focus();
 }
 
-function requestHandler(request) {
-  searchQuery.value = request;
+function queryHandler(query) {
+  searchQuery.value = query;
   render.clearGallery();
 
-  if (!request) {
+  if (!query) {
     urlHandler(null);
     iziToast.warning({
       message: 'Sorry, the request cannot be empty. Please try again!',
@@ -28,11 +31,14 @@ function requestHandler(request) {
     return;
   }
 
+  render.hideLoadMoreButton();
   render.showLoader();
-  getImagesByQuery(request, page)
+  getImagesByQuery(query, page)
     .then(fetchResultJSON => {
-      if (fetchResultJSON.totalHits) {
-        urlHandler(request);
+      totalHits = fetchResultJSON.totalHits;
+      galleryPaginationHandler();
+      if (totalHits) {
+        urlHandler(query);
         render.createGallery(fetchResultJSON.hits);
       } else {
         urlHandler(null);
@@ -46,7 +52,7 @@ function requestHandler(request) {
     })
     .catch(error => {
       iziToast.error({
-        message: `Sorry, there was an "${error}" with your request. Please try again later!`,
+        message: `Sorry, there was an "${error}" with your query. Please try again later!`,
         position: 'topRight',
         timeout: 2000,
       });
@@ -57,7 +63,17 @@ function requestHandler(request) {
 function formHandler() {
   searchForm.addEventListener('submit', event => {
     event.preventDefault();
-    requestHandler(searchQuery.value.trim());
+    queryHandler(searchQuery.value.trim());
+  });
+}
+
+function galleryPaginationHandler() {
+  console.log(`total`, totalHits);
+  if (totalHits > perPage) {
+    render.showLoadMoreButton();
+  }
+  loadMoreBtn.addEventListener('click', event => {
+    console.log(`load more click`);
   });
 }
 
@@ -76,5 +92,5 @@ window.addEventListener('load', searchFocus);
   document.body.addEventListener(event, searchFocus)
 );
 
-urlHandler() && requestHandler(urlHandler());
+urlHandler() && queryHandler(urlHandler());
 formHandler();

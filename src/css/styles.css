@@ -42,12 +42,12 @@ ul {
 }
 button {
   height: 40px;
-  max-width: 91px;
   border: none;
   border-radius: 8px;
   background: #4e75ff;
   color: #fff;
   padding: 8px 16px;
+  align-items: center;
 }
 input {
   height: 40px;
@@ -165,4 +165,11 @@ input::placeholder {
   100% {
     transform: rotate(360deg);
   }
+}
+.load-more {
+  display: none;
+}
+.load-more.is-active {
+  display: flex;
+  margin: 32px auto 0;
 }
