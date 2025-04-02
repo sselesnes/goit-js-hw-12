@@ -106,11 +106,13 @@ const galleryPagination = {
       render.showLoadMoreButton();
     } else {
       render.hideLoadMoreButton();
-      iziToast.info({
-        message: `We're sorry, but you've reached the end of search results.`,
-        position: 'topRight',
-        timeout: 2000,
-      });
+      if (totalHits) {
+        iziToast.info({
+          message: `We're sorry, but you've reached the end of search results.`,
+          position: 'topRight',
+          timeout: 2000,
+        });
+      }
     }
   },
 };
