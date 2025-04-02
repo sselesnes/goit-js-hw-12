@@ -11,6 +11,7 @@ const lightbox = new SimpleLightbox('.gallery a', {
 
 export function createGallery(images) {
   gallery.insertAdjacentHTML('beforeend', createMarkup(images));
+  // Якщо це не перша сторінка - після додавання картинок робимо скрол
   page > 1 && galleryPaginationScroll();
   lightbox.refresh();
 }

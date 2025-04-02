@@ -4,15 +4,16 @@ import getImagesByQuery from './js/pixabay-api';
 import * as render from './js/render-functions';
 
 const searchForm = document.querySelector('.form');
-const searchQuery = searchForm.elements['search-text'];
+const searchInputField = searchForm.elements['search-text'];
 export const loadMoreBtn = document.querySelector('.load-more');
 export const perPage = 15;
 export let page = 1;
-let totalHits;
+let totalImages;
 
 const queryCheck = query => {
-  searchQuery.value = query;
-  render.clearGallery();
+  // Якщо виклик був з urlHandler - підставляємо значення query у поле для вводу
+  // Якщо виклик був з formHandler - query дорівнює searchInputField.value і нічого не змінюється
+  searchInputField.value = query;
   if (!query) {
     urlHandler.remove();
     iziToast.warning({
@@ -22,91 +23,62 @@ const queryCheck = query => {
     });
     return;
   }
-  queryProcess(query);
+  queryFetch(query);
 };
 
-const queryProcess = query => {
+const queryFetch = async query => {
   render.hideLoadMoreButton();
   render.showLoader();
-  getImagesByQuery(query, page)
-    .then(fetchResultJSON => {
-      totalHits = fetchResultJSON.totalHits;
-      galleryPagination.handle();
-      if (totalHits) {
-        urlHandler.set(query);
-        render.createGallery(fetchResultJSON.hits);
-      } else {
-        urlHandler.remove();
-        iziToast.error({
-          message:
-            'Sorry, there are no images matching your search query. Please try again!',
-          position: 'topRight',
-          timeout: 2000,
-        });
-      }
-    })
-    .catch(error => {
+
+  try {
+    // Отримуємо відповідь
+    const fetchResultJSON = await getImagesByQuery(query, page);
+    totalImages = fetchResultJSON.totalHits;
+    // Перевіряємо чи потрібна кнопка "Load more"
+    galleryPagination.handle();
+    // У відповіді взагалі є картинки?
+    if (totalImages) {
+      urlHandler.set(query);
+      // hits - масив з зображень
+      render.createGallery(fetchResultJSON.hits);
+    } else {
+      urlHandler.remove();
       iziToast.error({
-        message: `Sorry, there was an "${error}" with your query. Please try again later!`,
+        message:
+          'Sorry, there are no images matching your search query. Please try again!',
         position: 'topRight',
         timeout: 2000,
       });
-    })
-    .finally(render.hideLoader);
-};
-
-const formHandler = () => {
-  searchForm.addEventListener('submit', event => {
-    if (event.target === searchForm) {
-      event.preventDefault();
-      urlHandler.remove();
-      page = 1;
-      queryCheck(searchQuery.value.trim());
     }
-  });
-};
-
-const urlHandler = {
-  init: function () {
-    this.url = new URL(window.location.href);
-    this.params = new URLSearchParams(this.url.search);
-  },
-  update: function () {
-    this.url.search = this.params.toString();
-    window.history.pushState({}, '', `${this.url}`);
-  },
-  get: function () {
-    page = this.params.get('p') ?? page;
-    return this.params.get('q');
-  },
-  set: function (query) {
-    this.params.set('q', query);
-    page !== 1 && this.params.set('p', page);
-    this.update();
-  },
-  remove: function () {
-    this.params.delete('q');
-    this.params.delete('p');
-    this.update();
-  },
+  } catch (error) {
+    iziToast.error({
+      message: `Sorry, there was an "${error}" with your query. Please try again later!`,
+      position: 'topRight',
+      timeout: 2000,
+    });
+  } finally {
+    render.hideLoader();
+  }
 };
 
 const galleryPagination = {
   init: () => {
     loadMoreBtn.addEventListener('click', event => {
       if (event.target === loadMoreBtn) {
+        // При натисканні "Load more" - збільшуємо номер сторінки та робимо запит на сервер
         page++;
-        queryProcess(searchQuery.value);
+        queryFetch(searchInputField.value);
       }
     });
   },
 
   handle: () => {
-    if (totalHits > perPage * page) {
+    // Ховаємо кнопку "Load more" та виводимо повідомлення якщо картинок більше немає
+    if (totalImages > perPage * page) {
       render.showLoadMoreButton();
     } else {
       render.hideLoadMoreButton();
-      if (totalHits) {
+      if (totalImages) {
         iziToast.info({
           message: `We're sorry, but you've reached the end of search results.`,
           position: 'topRight',
@@ -117,11 +89,58 @@ const galleryPagination = {
   },
 };
 
+const formHandler = () => {
+  searchForm.addEventListener('submit', event => {
+    if (event.target === searchForm) {
+      event.preventDefault();
+      // Після відправки форми очищуємо номер сторінки, галерею та прибираємо параметри з URL
+      page = 1;
+      render.clearGallery();
+      urlHandler.remove();
+      queryCheck(searchInputField.value.trim());
+    }
+  });
+};
+
+const urlHandler = {
+  // Отримуємо url, params - строку пошуку та номер сторінки
+  init: function () {
+    this.url = new URL(window.location.href);
+    this.params = new URLSearchParams(this.url.search);
+  },
+  // Оновлюємо номер сторінки, якщо він вказаний в URL
+  get: function () {
+    page = this.params.get('p') ?? page;
+    return this.params.get('q');
+  },
+  // Готуємо params для оновлення строки браузера
+  set: function (query) {
+    this.params.set('q', query);
+    // Прибираємо номер сторінки з url, якщо він дорівнює 1
+    page !== 1 && this.params.set('p', page);
+    this.update();
+  },
+  // Оновлюємо params строки пошуку браузера
+  update: function () {
+    this.url.search = this.params.toString();
+    window.history.pushState({}, '', `${this.url}`);
+  },
+  // Видаляємо params зі строки пошуку браузера
+  remove: function () {
+    this.params.delete('q');
+    this.params.delete('p');
+    this.update();
+  },
+};
+
+// Фокусуємо поле введення одразу після завантаження сторі або при натисканні клавіш
 ['load', 'keydown'].forEach(event =>
-  window.addEventListener(event, () => searchQuery.focus())
+  window.addEventListener(event, () => searchInputField.focus())
 );
 
 urlHandler.init();
 galleryPagination.init();
+// Перевірка url params на наявність query та номеру сторінки
 urlHandler.get() && queryCheck(urlHandler.get());
+// Запуск слухача форми та всієї логіки
 formHandler();

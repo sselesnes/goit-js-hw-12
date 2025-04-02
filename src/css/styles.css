@@ -74,6 +74,7 @@ input::placeholder {
     background: #6c8cff;
   }
 }
+/* Щоб не залипала кнопка після натиснення на мобільці */
 @media (pointer: coarse) {
   button:active {
     background: #6c8cff;
