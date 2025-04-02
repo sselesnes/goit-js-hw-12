@@ -1,16 +1,17 @@
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-import { loadMoreBtn } from '../main';
+import { loadMoreBtn, page } from '../main';
 
 const gallery = document.querySelector('.gallery');
 const cssLoader = document.querySelector('.loader');
+const lightbox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 250,
+});
 
 export function createGallery(images) {
-  const lightbox = new SimpleLightbox('.gallery a', {
-    captionsData: 'alt',
-    captionDelay: 250,
-  });
   gallery.insertAdjacentHTML('beforeend', createMarkup(images));
+  page > 1 && galleryPaginationScroll();
   lightbox.refresh();
 }
 
@@ -54,4 +55,13 @@ function createMarkup(images) {
            </li>`
     )
     .join('');
+}
+
+function galleryPaginationScroll() {
+  const galleryCard = gallery.querySelector('.gallery-item');
+  const cardHeight = galleryCard.getBoundingClientRect().height;
+  window.scrollTo({
+    top: window.scrollY + 2 * cardHeight,
+    behavior: 'smooth',
+  });
 }

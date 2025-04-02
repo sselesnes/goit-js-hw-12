@@ -3,12 +3,12 @@ import 'izitoast/dist/css/iziToast.min.css';
 import getImagesByQuery from './js/pixabay-api';
 import * as render from './js/render-functions';
 
-let page = 1;
-let totalHits;
 const searchForm = document.querySelector('.form');
 const searchQuery = searchForm.elements['search-text'];
 export const loadMoreBtn = document.querySelector('.load-more');
 export const perPage = 15;
+export let page = 1;
+let totalHits;
 
 const queryCheck = query => {
   searchQuery.value = query;
@@ -25,15 +25,6 @@ const queryCheck = query => {
   queryProcess(query);
 };
 
-const scrollTwoRows = () => {
-  const galleryCard = document.querySelector('.gallery-item');
-  const cardHeight = galleryCard.getBoundingClientRect().height;
-  window.scrollTo({
-    top: window.scrollY + 2 * cardHeight,
-    behavior: 'smooth',
-  });
-};
-
 const queryProcess = query => {
   render.hideLoadMoreButton();
   render.showLoader();
@@ -44,9 +35,6 @@ const queryProcess = query => {
       if (totalHits) {
         urlHandler.set(query);
         render.createGallery(fetchResultJSON.hits);
-        if (page > 1) {
-          scrollTwoRows();
-        }
       } else {
         urlHandler.remove();
         iziToast.error({
