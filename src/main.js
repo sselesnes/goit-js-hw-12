@@ -12,7 +12,7 @@ let totalImages;
 
 const queryCheck = query => {
   // Якщо виклик був з urlHandler - підставляємо значення query у поле для вводу
-  // Якщо виклик був з formHandler - query дорівнює searchInputField.value і нічого не змінюється
+  // Якщо виклик був з formHandler - query дорівнює searchInputField.value тому нічого не змінюється
   searchInputField.value = query;
   if (!query) {
     urlHandler.remove();
@@ -31,15 +31,14 @@ const queryFetch = async query => {
   render.showLoader();
 
   try {
-    // Отримуємо відповідь
+    // Отримуємо відповідь з сервера
     const fetchResultJSON = await getImagesByQuery(query, page);
     totalImages = fetchResultJSON.totalHits;
-    // Перевіряємо чи потрібна кнопка "Load more"
-    galleryPagination.handle();
-    // У відповіді взагалі є картинки?
     if (totalImages) {
+      // Перевіряємо чи потрібна кнопка "Load more"
+      galleryPagination.handle();
       urlHandler.set(query);
-      // hits - масив з зображень
+      // hits - масив з зображенями
       render.createGallery(fetchResultJSON.hits);
     } else {
       urlHandler.remove();
@@ -73,7 +72,7 @@ const galleryPagination = {
   },
 
   handle: () => {
-    // Ховаємо кнопку "Load more" та виводимо повідомлення якщо картинок більше немає
+    // Чи є картинки для наступної сторінки?
     if (totalImages > perPage * page) {
       render.showLoadMoreButton();
     } else {
@@ -133,7 +132,7 @@ const urlHandler = {
   },
 };
 
-// Фокусуємо поле введення одразу після завантаження сторі або при натисканні клавіш
+// Фокусуємо поле введення одразу після завантаження сторінки або при натисканні клавіш
 ['load', 'keydown'].forEach(event =>
   window.addEventListener(event, () => searchInputField.focus())
 );
